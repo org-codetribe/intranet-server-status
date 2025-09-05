@@ -8,6 +8,7 @@ import {
   Grid,
   Chip,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -19,9 +20,10 @@ export default function StatusPage() {
   const [database, setDatabase] = useState("unknown");
   const [logs, setLogs] = useState([]);
   const [lastChecked, setLastChecked] = useState();
-
+  const [isLoading, setisLoading] = useState(true);
   const loadData = async () => {
     try {
+      setisLoading(true);
       const stored = localStorage.getItem("lastChecked");
       if (stored) {
         setLastChecked(new Date(stored));
@@ -35,10 +37,11 @@ export default function StatusPage() {
 
       const logsResp = await statusService.getLogs();
       setLogs(logsResp);
-
       localStorage.setItem("lastChecked", new Date().toISOString());
     } catch (err) {
       console.error("Error loading system status:", err);
+    } finally {
+      setisLoading(false);
     }
   };
 
@@ -50,6 +53,7 @@ export default function StatusPage() {
 
   const renderStatusCard = (title, subtitle, status) => {
     const isUp = status === "up";
+
     return (
       <Card
         sx={{
@@ -60,27 +64,30 @@ export default function StatusPage() {
         }}
       >
         <CardContent>
-          {isUp ? (
+          {isLoading ? (
+            <CircularProgress size={40} color="primary" />
+          ) : isUp ? (
             <CheckCircleIcon color="success" sx={{ fontSize: 40 }} />
           ) : (
             <CancelIcon color="error" sx={{ fontSize: 40 }} />
           )}
+
           <Typography variant="h6" sx={{ mt: 1 }}>
             {title}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {subtitle}
           </Typography>
+
           <Chip
-            label={isUp ? "Operational" : "Down"}
-            color={isUp ? "success" : "error"}
+            label={isLoading ? "Checking..." : isUp ? "Operational" : "Down"}
+            color={isLoading ? "warning" : isUp ? "success" : "error"}
             sx={{ mt: 2, fontWeight: "bold" }}
           />
         </CardContent>
       </Card>
     );
   };
-
   return (
     <Box sx={{ p: 4 }}>
       <Typography variant="h4" align="center" gutterBottom>
