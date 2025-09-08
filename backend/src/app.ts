@@ -19,6 +19,6 @@ app.get("/health", (_req, res) => {
   res.status(200).json({ status: "OK", message: "Server is running 🚀" });
 });
 
-app.use("/api/system", systemRoutes);
+app.use("/system", systemRoutes);
 
 export default app;
